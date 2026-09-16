@@ -10,6 +10,17 @@ acompañadas de una gestión de capital disciplinada.
 
 ---
 
+## Herramienta en vivo
+
+**[▶ Libro de Momios](https://claude.ai/artifact/UwfxhLZBeULFiT9Duwe7Av)** — registro de picks que
+lleva la cuenta de aciertos y fallos y calcula la ganancia o pérdida real según el momio de cada
+pick, además de yield y CLV. Es la implementación mínima de los conceptos de los documentos 04
+(seguimiento de resultados) y 02 (CLV como métrica de validación).
+
+Código fuente: [`app/libro-de-momios.html`](app/libro-de-momios.html).
+
+---
+
 ## Índice de la especificación
 
 | # | Documento | Contenido |

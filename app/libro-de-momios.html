@@ -1,0 +1,961 @@
+<title>Libro de Momios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F1F0EA; --surface:#FCFBF8; --surface-2:#F6F5F0; --inset:#EDEBE3;
+  --rule:#DCD8CD; --rule-strong:#C0BCAF;
+  --ink:#191B17; --ink-2:#55584F; --muted:#8A8D83;
+  --accent:#3D3BA6; --accent-soft:#E6E6F6; --accent-ink:#2B299A; --on-accent:#FCFBF8;
+  --good:#156C49; --good-soft:#E0F0E7;
+  --bad:#A32E1C; --bad-soft:#F8E4E0;
+  --warn:#8F6408; --warn-soft:#F6ECD6;
+  --shadow:0 1px 2px rgba(25,27,23,.07), 0 6px 18px -12px rgba(25,27,23,.28);
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#131519; --surface:#1B1E23; --surface-2:#202329; --inset:#171A1F;
+  --rule:#2D3138; --rule-strong:#414751;
+  --ink:#EDEBE4; --ink-2:#A9ADA4; --muted:#787C73;
+  --accent:#9A98F8; --accent-soft:#23234A; --accent-ink:#B4B2FF; --on-accent:#14161A;
+  --good:#46C48C; --good-soft:#12301F;
+  --bad:#F27A61; --bad-soft:#3A1A14;
+  --warn:#DDAE45; --warn-soft:#33260E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -14px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#131519; --surface:#1B1E23; --surface-2:#202329; --inset:#171A1F;
+  --rule:#2D3138; --rule-strong:#414751;
+  --ink:#EDEBE4; --ink-2:#A9ADA4; --muted:#787C73;
+  --accent:#9A98F8; --accent-soft:#23234A; --accent-ink:#B4B2FF; --on-accent:#14161A;
+  --good:#46C48C; --good-soft:#12301F;
+  --bad:#F27A61; --bad-soft:#3A1A14;
+  --warn:#DDAE45; --warn-soft:#33260E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -14px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.page{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:0 56px}
+h1,h2,h3{font-family:var(--cond);margin:0;text-wrap:balance}
+.eyebrow{font-family:var(--cond);text-transform:uppercase;letter-spacing:.09em;font-size:11px;font-weight:600;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+/* ---------- cabecera ---------- */
+.masthead{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);
+  border-bottom:1px solid var(--rule);margin-inline:-16px;padding:14px 16px 12px;
+  display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.brand h1{font-size:23px;font-weight:700;letter-spacing:-.015em;line-height:1.1}
+.brand p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2)}
+.masthead-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--cond);font-size:11.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:99px;border:1px solid var(--rule-strong);color:var(--ink-2);background:var(--surface)}
+.pill .dot{width:6px;height:6px;border-radius:99px;background:var(--muted)}
+.pill[data-state="db"]{color:var(--good);border-color:var(--good)}
+.pill[data-state="db"] .dot{background:var(--good)}
+.pill[data-state="local"]{color:var(--warn);border-color:var(--warn)}
+.pill[data-state="local"] .dot{background:var(--warn)}
+.seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:7px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;color:var(--ink-2);padding:5px 10px;font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.03em}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+/* ---------- avisos ---------- */
+.notice{margin-top:14px;border:1px solid var(--rule-strong);border-left:3px solid var(--warn);background:var(--warn-soft);
+  color:var(--ink);padding:10px 13px;border-radius:6px;font-size:13.5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice.demo{border-left-color:var(--accent);background:var(--accent-soft)}
+.notice button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:5px;padding:3px 9px;font-family:var(--cond);font-size:12px;font-weight:600}
+
+/* ---------- filtros ---------- */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.filters .eyebrow{margin-right:2px}
+select,input[type="text"],input[type="number"],input[type="date"]{
+  font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);
+  border:1px solid var(--rule-strong);border-radius:6px;padding:6px 9px;min-width:0;max-width:100%}
+input::placeholder{color:var(--muted)}
+.filters select,.filters input{padding:5px 8px}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:20px}
+.kpi{background:var(--surface);padding:13px 15px 15px}
+.kpi.lead{grid-column:span 2}
+.kpi .k-label{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:10.5px;font-weight:600;color:var(--muted)}
+.kpi .k-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:25px;letter-spacing:-.03em;margin-top:5px;line-height:1.05}
+.kpi.lead .k-val{font-size:40px}
+.kpi .k-sub{font-size:12px;color:var(--ink-2);margin-top:4px}
+.k-val.pos{color:var(--good)} .k-val.neg{color:var(--bad)}
+@media (max-width:880px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:560px){ .kpi .k-val{font-size:22px} .kpi.lead .k-val{font-size:31px} }
+
+/* ---------- gráfico ---------- */
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;margin-top:20px}
+.card-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:13px 15px 0}
+.card-head h2{font-size:15px;font-weight:600;letter-spacing:.01em}
+.card-head .hint{font-size:12px;color:var(--muted);margin-left:auto}
+#chart-wrap{position:relative;padding:6px 8px 10px}
+#chart-empty{padding:34px 15px 40px;text-align:center;color:var(--muted);font-size:13.5px}
+#chart svg{display:block;width:100%;height:auto}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:6px;padding:7px 9px;
+  font-size:12px;line-height:1.45;box-shadow:var(--shadow);max-width:230px;z-index:5;transform:translate(-50%,-115%)}
+.tip b{font-family:var(--cond);font-weight:600;display:block;font-size:12.5px}
+.tip .num{font-size:12px}
+
+/* ---------- alta ---------- */
+.ticket{background:var(--surface);border:1px solid var(--rule-strong);border-radius:8px;margin-top:20px;box-shadow:var(--shadow)}
+.ticket-head{padding:12px 15px;border-bottom:1px dashed var(--rule-strong);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ticket-head h2{font-size:15px;font-weight:600}
+.ticket-head span{font-size:12px;color:var(--muted)}
+form.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:12px;padding:15px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;font-weight:600;color:var(--ink-2)}
+.f .opt{color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500}
+.f input,.f select{width:100%}
+.f .help{font-size:11.5px;color:var(--muted);min-height:1em}
+.f .help.err{color:var(--bad)}
+.f-wide{grid-column:span 2}
+@media (max-width:560px){ .f-wide{grid-column:span 1} }
+.ticket-foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 15px 15px}
+.btn{background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);border-radius:6px;padding:8px 16px;
+  font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.02em}
+.btn:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink-2);border-color:var(--rule-strong)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.ticket-foot .note{font-size:12px;color:var(--muted)}
+
+/* ---------- libro ---------- */
+.ledger-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:28px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.ledger-head h2{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.ledger-head .count{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;font-weight:600;
+  color:var(--muted);text-align:left;padding:9px 8px;border-bottom:1px solid var(--rule-strong);white-space:nowrap}
+th.r,td.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--rule)}
+tbody tr:nth-child(even){background:var(--surface-2)}
+tbody tr.demo-row td{opacity:.72}
+td{padding:9px 8px;vertical-align:top}
+td.stripe{padding:0;width:3px;background:var(--muted)}
+tr[data-tone="good"] td.stripe{background:var(--good)}
+tr[data-tone="bad"] td.stripe{background:var(--bad)}
+tr[data-tone="warn"] td.stripe{background:var(--warn)}
+tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
+.ev{font-weight:600;line-height:1.3}
+.ev small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:1px}
+.sel{line-height:1.3}
+.sel small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--cond);font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.chip[data-tone="good"]{background:var(--good-soft);color:var(--good)}
+.chip[data-tone="bad"]{background:var(--bad-soft);color:var(--bad)}
+.chip[data-tone="warn"]{background:var(--warn-soft);color:var(--warn)}
+.chip[data-tone="muted"]{background:var(--inset);color:var(--ink-2)}
+.chip.ex{background:var(--accent-soft);color:var(--accent-ink)}
+.pnl.pos{color:var(--good);font-weight:600}
+.pnl.neg{color:var(--bad);font-weight:600}
+.acts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mini{border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink-2);border-radius:5px;
+  padding:3px 7px;font-family:var(--cond);font-size:11.5px;font-weight:600;line-height:1.35}
+.mini:hover{border-color:var(--ink-2);color:var(--ink)}
+.mini.g:hover{border-color:var(--good);color:var(--good);background:var(--good-soft)}
+.mini.p:hover{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+.mini.x:hover{border-color:var(--bad);color:var(--bad)}
+.clv-cell button{border:0;background:transparent;color:var(--ink-2);font:inherit;padding:0;
+  border-bottom:1px dotted var(--rule-strong);font-family:var(--mono);font-size:12.5px}
+.clv-cell button:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.clv-cell input{width:82px;font-family:var(--mono);font-size:12.5px;padding:2px 5px}
+.empty{padding:34px 10px;text-align:center;color:var(--muted);font-size:13.5px}
+
+@media (max-width:760px){
+  thead{display:none}
+  tbody tr{display:grid;grid-template-columns:3px 1fr;gap:0;padding:0;margin-bottom:10px;
+    border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--surface)}
+  tbody tr:nth-child(even){background:var(--surface-2)}
+  td.stripe{width:auto;grid-row:1 / -1}
+  td{grid-column:2;display:flex;justify-content:space-between;gap:12px;padding:7px 11px;border-bottom:1px solid var(--rule)}
+  td:last-child{border-bottom:0}
+  td::before{content:attr(data-label);font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;
+    font-size:10.5px;font-weight:600;color:var(--muted);flex:0 0 auto;padding-top:2px}
+  td.r{text-align:right}
+  td.ev-cell{flex-direction:column;gap:2px}
+  td.ev-cell::before{content:none}
+  .acts{flex:1;justify-content:flex-end}
+}
+
+/* ---------- pie ---------- */
+.foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-2)}
+.foot h3{font-size:13px;font-weight:600;margin-bottom:6px}
+.foot ul{margin:0 0 14px;padding-left:18px}
+.foot li{margin-bottom:3px}
+.foot code{font-family:var(--mono);font-size:12px;background:var(--inset);padding:1px 5px;border-radius:4px}
+.foot .warn-note{border-left:3px solid var(--rule-strong);padding-left:11px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="brand">
+      <h1>Libro de Momios</h1>
+      <p>Registro de picks: aciertos, fallos y ganancia real según el momio.</p>
+    </div>
+    <div class="masthead-right">
+      <div class="seg" role="group" aria-label="Formato de momio">
+        <button type="button" id="fmt-american" data-fmt="american" aria-pressed="true">Americano</button>
+        <button type="button" id="fmt-decimal" data-fmt="decimal" aria-pressed="false">Decimal</button>
+        <button type="button" id="fmt-fractional" data-fmt="fractional" aria-pressed="false">Fracción</button>
+      </div>
+      <span class="pill" id="sync-pill" data-state="loading"><span class="dot"></span><span id="sync-text">Conectando</span></span>
+    </div>
+  </header>
+
+  <div class="notice demo" id="demo-notice" hidden>
+    <span><strong>Estás viendo 4 picks de ejemplo</strong> para que veas cómo se calcula todo. Se borran solos en cuanto registres el primero tuyo.</span>
+    <button type="button" id="dismiss-demo">Empezar en blanco</button>
+  </div>
+  <div class="notice" id="readonly-notice" hidden>
+    <span><strong>Solo lectura.</strong> Esta vista no tiene permiso para escribir en el registro compartido.</span>
+  </div>
+  <div class="notice" id="local-notice" hidden>
+    <span><strong>Guardando solo en este navegador.</strong> No hay conexión con el almacén del artefacto, así que los picks no se sincronizan entre dispositivos.</span>
+  </div>
+
+  <div class="filters" role="group" aria-label="Filtros">
+    <span class="eyebrow">Filtrar</span>
+    <select id="f-status" aria-label="Estado">
+      <option value="all">Todos los estados</option>
+      <option value="pendiente">Pendientes</option>
+      <option value="resueltos">Resueltos</option>
+      <option value="ganado">Ganados</option>
+      <option value="perdido">Perdidos</option>
+    </select>
+    <select id="f-league" aria-label="Liga o deporte"><option value="all">Todas las ligas</option></select>
+    <select id="f-book" aria-label="Casa"><option value="all">Todas las casas</option></select>
+    <input type="text" id="f-q" placeholder="Buscar evento o selección" aria-label="Buscar">
+    <button type="button" class="mini" id="f-clear">Limpiar</button>
+  </div>
+
+  <section class="kpis" id="kpis" aria-label="Resumen"></section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Ganancia acumulada</h2>
+      <span class="hint" id="chart-hint">Cada punto es un pick resuelto, en orden</span>
+    </div>
+    <div id="chart-wrap">
+      <div id="chart"></div>
+      <div id="chart-empty">Todavía no hay picks resueltos. Marca un pick como ganado o perdido y la curva aparece aquí.</div>
+    </div>
+  </section>
+
+  <section class="ticket">
+    <div class="ticket-head">
+      <h2>Registrar pick</h2>
+      <span id="ticket-fmt-hint">Momio en formato americano (ej. −110, +165)</span>
+    </div>
+    <form class="grid" id="pick-form" autocomplete="off">
+      <div class="f"><label for="p-date">Fecha</label><input type="date" id="p-date" required><div class="help"></div></div>
+      <div class="f f-wide"><label for="p-event">Evento</label><input type="text" id="p-event" placeholder="Girona vs Betis" required><div class="help"></div></div>
+      <div class="f"><label for="p-league">Liga / deporte</label><input type="text" id="p-league" placeholder="LaLiga" list="league-list"><datalist id="league-list"></datalist><div class="help"></div></div>
+      <div class="f f-wide"><label for="p-sel">Selección</label><input type="text" id="p-sel" placeholder="Más de 2.5 goles" required><div class="help"></div></div>
+      <div class="f"><label for="p-odds">Momio</label><input type="text" id="p-odds" inputmode="text" placeholder="-110" required><div class="help" id="odds-help"></div></div>
+      <div class="f"><label for="p-stake">Importe</label><input type="number" id="p-stake" min="0" step="any" placeholder="100" required><div class="help" id="stake-help"></div></div>
+      <div class="f"><label for="p-book">Casa <span class="opt">· opcional</span></label><input type="text" id="p-book" placeholder="Caliente" list="book-list"><datalist id="book-list"></datalist><div class="help"></div></div>
+      <div class="f"><label for="p-close">Momio de cierre</label><input type="text" id="p-close" placeholder="-125"><div class="help">Opcional · para el CLV</div></div>
+    </form>
+    <div class="ticket-foot">
+      <button type="submit" form="pick-form" class="btn" id="submit-btn">Agregar al libro</button>
+      <button type="button" class="btn ghost" id="reset-btn">Limpiar</button>
+      <span class="note" id="form-note"></span>
+    </div>
+  </section>
+
+  <div class="ledger-head">
+    <h2>El libro</h2>
+    <span class="count" id="ledger-count"></span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th aria-hidden="true"></th>
+        <th>Fecha</th><th>Evento</th><th>Selección</th>
+        <th class="r">Momio</th><th class="r">Importe</th>
+        <th>Estado</th><th class="r">Gana / Pierde</th><th class="r">CLV</th>
+        <th class="r">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="ledger-body"></tbody>
+  </table>
+  <div class="empty" id="ledger-empty" hidden>Ningún pick coincide con estos filtros.</div>
+
+  <div class="foot">
+    <h3>Cómo se calcula cada número</h3>
+    <ul>
+      <li><strong>Momio a decimal:</strong> americano positivo <code>1 + m/100</code>; negativo <code>1 + 100/|m|</code>. Todo se guarda en decimal y se muestra en el formato que elijas.</li>
+      <li><strong>Ganancia de un pick:</strong> ganado <code>importe × (decimal − 1)</code>; perdido <code>−importe</code>; nulo <code>0</code>; medio ganado y medio perdido, la mitad de cada uno (hándicaps asiáticos de cuarto).</li>
+      <li><strong>% de acierto:</strong> <code>ganados ÷ (ganados + perdidos)</code>. Los nulos no cuentan ni a favor ni en contra, y los pendientes no entran en ninguna estadística.</li>
+      <li><strong>Yield (ROI):</strong> <code>ganancia neta ÷ total apostado</code>. Es la métrica que importa: un 40 % de acierto a momios de +200 gana dinero y un 70 % a −300 lo pierde.</li>
+      <li><strong>CLV:</strong> <code>(decimal tomado ÷ decimal de cierre) − 1</code>. Mide si conseguiste mejor precio que el mercado al cierre.</li>
+    </ul>
+    <p class="warn-note">El CLV se calcula contra el momio de cierre tal como lo capturas, con el margen de la casa incluido. Para el CLV estricto habría que quitarle el margen a la línea de cierre; aquí sirve como comparación consistente entre tus propios picks, no como cifra absoluta. Un tamaño de muestra pequeño no dice nada: por debajo de ~100 picks resueltos, casi todo lo que veas es varianza.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================ modelo ============================ */
+  var RESULT = {
+    pendiente:     {label:"Pendiente",   tone:"warn",  pnl:null},
+    ganado:        {label:"Ganado",      tone:"good",  pnl:function(s,d){return s*(d-1);}},
+    medio_ganado:  {label:"½ Ganado",    tone:"good",  pnl:function(s,d){return s*(d-1)/2;}},
+    nulo:          {label:"Nulo",        tone:"muted", pnl:function(){return 0;}},
+    medio_perdido: {label:"½ Perdido",   tone:"bad",   pnl:function(s){return -s/2;}},
+    perdido:       {label:"Perdido",     tone:"bad",   pnl:function(s){return -s;}}
+  };
+  var WIN = {ganado:1, medio_ganado:1}, LOSS = {perdido:1, medio_perdido:1};
+
+  var S = {
+    picks: [], settings: {oddsFormat:"american", currency:"$"},
+    mode: "loading", db: null, readOnly: false, demoOff: false,
+    filters: {status:"all", league:"all", book:"all", q:""}
+  };
+  var queue = [], resolved = false, unsubPicks = null;
+
+  var DEMO = [
+    {id:"d1", eventDate:"2026-09-12", event:"Chivas vs América", league:"Liga MX", selection:"América −0.5", oddsDecimal:2.05, book:"Caliente", stake:100, status:"ganado",  closingDecimal:1.87, settledAt:1757721600000, createdAt:1757635200000},
+    {id:"d2", eventDate:"2026-09-13", event:"Lakers vs Nuggets", league:"NBA",     selection:"Más de 224.5", oddsDecimal:1.91, book:"Bet365",  stake:100, status:"perdido", closingDecimal:1.95, settledAt:1757808000000, createdAt:1757721600000},
+    {id:"d3", eventDate:"2026-09-14", event:"Girona vs Betis",   league:"LaLiga",  selection:"Más de 2.5 goles", oddsDecimal:2.20, book:"Bet365", stake:80, status:"ganado", closingDecimal:1.98, settledAt:1757894400000, createdAt:1757808000000},
+    {id:"d4", eventDate:"2026-09-17", event:"Rayados vs Tigres", league:"Liga MX", selection:"Ambos anotan", oddsDecimal:1.74, book:"Caliente", stake:120, status:"pendiente", closingDecimal:null, settledAt:null, createdAt:1757980800000}
+  ];
+
+  /* ========================= conversiones ========================= */
+  function americanToDecimal(m){ m=Number(m); if(!isFinite(m)||Math.abs(m)<100) return NaN; return m>0 ? 1+m/100 : 1+100/Math.abs(m); }
+  function decimalToAmerican(d){ if(!(d>1)) return NaN; return d>=2 ? Math.round((d-1)*100) : Math.round(-100/(d-1)); }
+  function fractionalToDecimal(s){ var p=String(s).split("/"); if(p.length!==2) return NaN; var a=Number(p[0]), b=Number(p[1]); if(!(b>0)||!isFinite(a)||a<0) return NaN; return 1+a/b; }
+  function gcd(a,b){ while(b){ var t=b; b=a%b; a=t; } return a; }
+  function decimalToFraction(d){
+    if(!(d>1)) return "—";
+    var n=d-1, best=null;
+    for(var b=1;b<=50;b++){ var a=Math.round(n*b); var err=Math.abs(n-a/b); if(a>0 && (best===null || err<best.err-1e-12)) best={a:a,b:b,err:err}; if(best&&best.err<1e-9) break; }
+    if(!best) return "—";
+    var g=gcd(best.a,best.b)||1; return (best.a/g)+"/"+(best.b/g);
+  }
+  function parseOdds(raw, fmt){
+    var s=String(raw==null?"":raw).trim().replace(",",".");
+    if(!s) return NaN;
+    if(fmt==="american") return americanToDecimal(s.replace(/^\+/,""));
+    if(fmt==="fractional") return fractionalToDecimal(s);
+    var d=Number(s); return d>1 ? d : NaN;
+  }
+  function fmtOdds(d, fmt){
+    if(!(d>1)) return "—";
+    if(fmt==="decimal") return d.toFixed(2);
+    if(fmt==="fractional") return decimalToFraction(d);
+    var a=decimalToAmerican(d); return (a>0?"+":"")+a;
+  }
+  function oddsPlaceholder(fmt){ return fmt==="decimal" ? "1.91" : fmt==="fractional" ? "10/11" : "-110"; }
+  function oddsHint(fmt){
+    return fmt==="decimal" ? "Momio en formato decimal (ej. 1.91, 2.65)"
+         : fmt==="fractional" ? "Momio en fracción (ej. 10/11, 5/2)"
+         : "Momio en formato americano (ej. −110, +165)";
+  }
+
+  /* =========================== formato =========================== */
+  function money(v){
+    var c=S.settings.currency||"$", neg=v<0, n=Math.abs(v);
+    var s=n.toLocaleString("es-MX",{minimumFractionDigits:2, maximumFractionDigits:2});
+    return (neg?"−":"")+c+s;
+  }
+  function pct(v,dec){ if(!isFinite(v)) return "—"; return (v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(dec==null?1:dec)+"%"; }
+  function plainPct(v){ return isFinite(v) ? v.toFixed(1)+"%" : "—"; }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function shortDate(iso){
+    if(!iso) return "—";
+    var p=String(iso).split("-"); if(p.length!==3) return iso;
+    var M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+    return Number(p[2])+" "+M[Number(p[1])-1];
+  }
+  function todayISO(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+  /* ========================== estadística ========================= */
+  function pnlOf(p){ var r=RESULT[p.status]; return (r&&r.pnl) ? r.pnl(Number(p.stake)||0, Number(p.oddsDecimal)||0) : 0; }
+  function orderKey(p){ return p.settledAt || (p.eventDate ? Date.parse(p.eventDate+"T12:00:00") : 0) || p.createdAt || 0; }
+
+  function computeStats(list){
+    var settled=[], pend=0, pendStake=0;
+    for(var i=0;i<list.length;i++){
+      if(list[i].status==="pendiente"){ pend++; pendStake+=Number(list[i].stake)||0; }
+      else settled.push(list[i]);
+    }
+    settled.sort(function(a,b){ return orderKey(a)-orderKey(b); });
+    var pnl=0, turnover=0, wins=0, losses=0, voids=0, oddsSum=0, clvSum=0, clvN=0, clvPos=0, series=[];
+    for(var j=0;j<settled.length;j++){
+      var p=settled[j], s=Number(p.stake)||0, d=Number(p.oddsDecimal)||0;
+      pnl += pnlOf(p); turnover += s; oddsSum += d;
+      if(WIN[p.status]) wins++; else if(LOSS[p.status]) losses++; else voids++;
+      if(p.closingDecimal>1 && d>1){ var c=(d/p.closingDecimal-1)*100; clvSum+=c; clvN++; if(c>0) clvPos++; }
+      series.push({i:j+1, cum:pnl, pick:p});
+    }
+    var decided = wins+losses;
+    var streak=0, streakTone="muted";
+    for(var k=settled.length-1;k>=0;k--){
+      var st=settled[k].status;
+      if(!WIN[st] && !LOSS[st]) continue;
+      var isW = !!WIN[st];
+      if(streak===0){ streak=1; streakTone=isW?"good":"bad"; }
+      else if((streakTone==="good")===isW) streak++;
+      else break;
+    }
+    return {
+      pnl:pnl, turnover:turnover, wins:wins, losses:losses, voids:voids, pending:pend, pendStake:pendStake,
+      settledN:settled.length, hitRate: decided ? wins/decided*100 : NaN,
+      yieldPct: turnover>0 ? pnl/turnover*100 : NaN,
+      avgOdds: settled.length ? oddsSum/settled.length : NaN,
+      clv: clvN ? clvSum/clvN : NaN, clvN:clvN, clvPosPct: clvN ? clvPos/clvN*100 : NaN,
+      streak:streak, streakTone:streakTone, series:series
+    };
+  }
+
+  /* ========================= almacenamiento ======================= */
+  var LS_PICKS="libro-momios:picks", LS_SET="libro-momios:settings", LS_DEMO="libro-momios:demo-off";
+  function lsGet(k,f){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):f; }catch(e){ return f; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function setSync(state, text){
+    var pill=document.getElementById("sync-pill");
+    pill.setAttribute("data-state", state);
+    document.getElementById("sync-text").textContent = text;
+  }
+
+  function boot(){
+    S.demoOff = !!lsGet(LS_DEMO,false);
+    var sv = lsGet(LS_SET,null); if(sv && sv.oddsFormat) S.settings.oddsFormat = sv.oddsFormat;
+    document.getElementById("p-date").value = todayISO();
+    applyFormatUI();
+    render();
+    if(window.claude && typeof window.claude.use === "function"){
+      window.claude.use("db").then(onDb, function(){ useLocal(); });
+    } else { useLocal(); }
+  }
+
+  function onDb(db){
+    if(!db){ useLocal(); return; }
+    S.db = db; S.mode="db"; resolved=true;
+    setSync("db","Guardado en la nube");
+    try{
+      db.doc("config/settings").onSnapshot(function(snap){
+        if(snap.exists){
+          var d=snap.data()||{};
+          if(d.oddsFormat && d.oddsFormat!==S.settings.oddsFormat){ S.settings.oddsFormat=d.oddsFormat; applyFormatUI(); }
+          if(d.currency) S.settings.currency=d.currency;
+          render();
+        }
+      }, function(){});
+      unsubPicks = db.collection("picks").onSnapshot(function(snap){
+        var out=[];
+        for(var i=0;i<snap.docs.length;i++){
+          var doc=snap.docs[i], data=doc.data()||{};
+          out.push(Object.assign({id:doc.id}, data));
+        }
+        S.picks = out; render();
+      }, function(err){
+        if(err && err.code==="revoked"){ S.readOnly=true; setSync("local","Sin acceso"); render(); }
+      });
+    }catch(e){ useLocal(); return; }
+    flushQueue();
+  }
+
+  function useLocal(){
+    if(resolved) return;
+    S.mode="local"; resolved=true;
+    setSync("local","Solo este navegador");
+    document.getElementById("local-notice").hidden = false;
+    var stored = lsGet(LS_PICKS, []);
+    S.picks = Array.isArray(stored) ? stored.concat(S.picks.filter(isTemp)) : S.picks.filter(isTemp);
+    flushQueue();
+  }
+
+  function isTemp(p){ return String(p.id).indexOf("tmp-")===0; }
+  function newId(){ return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+  function flushQueue(){
+    if(!queue.length){ render(); return; }
+    var items = queue.slice(); queue.length = 0;
+    S.picks = S.picks.filter(function(p){ return !isTemp(p); });
+    if(S.mode==="db"){
+      (function next(k){
+        if(k>=items.length){ render(); return; }
+        S.db.collection("picks").add(items[k]).then(function(){ next(k+1); }, function(e){ onWriteError(e); next(k+1); });
+      })(0);
+    } else {
+      for(var i=0;i<items.length;i++) S.picks.push(Object.assign({id:newId()}, items[i]));
+      persistLocal(); render();
+    }
+  }
+
+  function persistLocal(){ if(S.mode==="local") lsSet(LS_PICKS, S.picks); }
+
+  function onWriteError(e){
+    var code = e && e.code;
+    if(code==="invalid_argument" || code==="revoked" || code==="not_granted"){
+      S.readOnly = true;
+      document.getElementById("readonly-notice").hidden = false;
+      setSync("local","Solo lectura");
+    } else if(code==="quota_exceeded"){
+      note("El registro llegó a su límite de picks. Borra algunos antiguos para seguir agregando.");
+    } else {
+      note("No se pudo guardar. Inténtalo otra vez.");
+    }
+    render();
+  }
+
+  function addPick(data){
+    if(S.readOnly) return;
+    if(!resolved){
+      queue.push(data);
+      S.picks.push(Object.assign({id:"tmp-"+Math.random().toString(36).slice(2)}, data));
+      render(); return;
+    }
+    if(S.mode==="db"){
+      S.db.collection("picks").add(data).then(null, onWriteError);
+    } else {
+      S.picks.push(Object.assign({id:newId()}, data));
+      persistLocal(); render();
+    }
+  }
+
+  function patchPick(id, patch){
+    if(S.readOnly) return;
+    if(S.mode==="db"){
+      S.db.collection("picks").doc(id).update(patch).then(null, onWriteError);
+    } else {
+      for(var i=0;i<S.picks.length;i++) if(S.picks[i].id===id) S.picks[i]=Object.assign({}, S.picks[i], patch);
+      persistLocal(); render();
+    }
+  }
+
+  function removePick(id){
+    if(S.readOnly) return;
+    if(S.mode==="db"){
+      S.db.collection("picks").doc(id).delete().then(null, onWriteError);
+    } else {
+      S.picks = S.picks.filter(function(p){ return p.id!==id; });
+      persistLocal(); render();
+    }
+  }
+
+  function saveSetting(patch){
+    Object.assign(S.settings, patch);
+    if(S.mode==="db" && !S.readOnly){
+      S.db.doc("config/settings").set({oddsFormat:S.settings.oddsFormat, currency:S.settings.currency}).then(null, function(){});
+    }
+    lsSet(LS_SET, {oddsFormat:S.settings.oddsFormat});
+  }
+
+  var noteTimer=null;
+  function note(msg){
+    var el=document.getElementById("form-note");
+    el.textContent=msg;
+    if(noteTimer) clearTimeout(noteTimer);
+    noteTimer=setTimeout(function(){ el.textContent=""; }, 4500);
+  }
+
+  /* ============================ vistas =========================== */
+  function isDemo(){ return S.picks.length===0 && !S.demoOff; }
+  function activePicks(){ return isDemo() ? DEMO : S.picks; }
+
+  function filtered(){
+    var all = activePicks(), f = S.filters, q = f.q.trim().toLowerCase(), out=[];
+    for(var i=0;i<all.length;i++){
+      var p=all[i];
+      if(f.status==="pendiente" && p.status!=="pendiente") continue;
+      if(f.status==="resueltos" && p.status==="pendiente") continue;
+      if(f.status==="ganado" && !WIN[p.status]) continue;
+      if(f.status==="perdido" && !LOSS[p.status]) continue;
+      if(f.league!=="all" && (p.league||"—")!==f.league) continue;
+      if(f.book!=="all" && (p.book||"—")!==f.book) continue;
+      if(q){
+        var hay=((p.event||"")+" "+(p.selection||"")+" "+(p.league||"")+" "+(p.book||"")).toLowerCase();
+        if(hay.indexOf(q)===-1) continue;
+      }
+      out.push(p);
+    }
+    return out;
+  }
+
+  function renderKpis(st){
+    var fmt=S.settings.oddsFormat;
+    var cells = [
+      {lead:true, label:"Ganancia neta", val:money(st.pnl), cls: st.pnl>0?"pos":st.pnl<0?"neg":"",
+       sub: st.settledN ? st.settledN+" picks resueltos de "+(st.settledN+st.pending) : "sin picks resueltos"},
+      {label:"% de acierto", val: plainPct(st.hitRate), cls:"",
+       sub: st.wins+" ganados · "+st.losses+" perdidos"+(st.voids?" · "+st.voids+" nulos":"")},
+      {label:"Yield (ROI)", val: pct(st.yieldPct), cls: st.yieldPct>0?"pos":st.yieldPct<0?"neg":"",
+       sub:"ganancia ÷ total apostado"},
+      {label:"Total apostado", val: money(st.turnover), cls:"",
+       sub: st.settledN ? money(st.turnover/st.settledN)+" por pick" : "sin picks resueltos"},
+      {label:"Momio medio", val: isFinite(st.avgOdds)? fmtOdds(st.avgOdds,fmt) : "—", cls:"",
+       sub: isFinite(st.avgOdds)? "equilibrio en "+plainPct(100/st.avgOdds)+" de acierto" : "sin datos"},
+      {label:"CLV medio", val: isFinite(st.clv)? pct(st.clv,2) : "—", cls: st.clv>0?"pos":st.clv<0?"neg":"",
+       sub: st.clvN ? st.clvN+" con cierre · "+plainPct(st.clvPosPct)+" positivos" : "captura momios de cierre"},
+      {label:"Racha", val: st.streak ? st.streak+(st.streakTone==="good"?" ✓":" ✗") : "—",
+       cls: st.streakTone==="good"?"pos":st.streakTone==="bad"?"neg":"",
+       sub: st.pending ? st.pending+" pendientes · "+money(st.pendStake)+" en juego" : "sin picks abiertos"}
+    ];
+    var html="";
+    for(var i=0;i<cells.length;i++){
+      var c=cells[i];
+      html += '<div class="kpi'+(c.lead?" lead":"")+'"><div class="k-label">'+esc(c.label)+'</div>'+
+              '<div class="k-val '+c.cls+'">'+esc(c.val)+'</div><div class="k-sub">'+esc(c.sub)+'</div></div>';
+    }
+    document.getElementById("kpis").innerHTML = html;
+  }
+
+  /* ------------------------- gráfico SVG ------------------------- */
+  var chartPts=[], chartBox=null;
+  function niceStep(range, target){
+    if(!(range>0)) return 1;
+    var raw=range/Math.max(1,target), mag=Math.pow(10, Math.floor(Math.log(raw)/Math.LN10)), n=raw/mag;
+    var m = n<=1?1 : n<=2?2 : n<=2.5?2.5 : n<=5?5 : 10;
+    return m*mag;
+  }
+  function tickLabel(v){
+    var c=S.settings.currency||"$", neg=v<0, n=Math.abs(v);
+    var dec = n>0 && n<10 ? (n%1===0?0:2) : 0;
+    return (neg?"−":"")+c+n.toLocaleString("es-MX",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  function renderChart(st){
+    var host=document.getElementById("chart"), empty=document.getElementById("chart-empty");
+    var wrap=document.getElementById("chart-wrap");
+    var old=wrap.querySelector(".tip"); if(old) old.remove();
+    if(!st.series.length){ host.innerHTML=""; empty.hidden=false; return; }
+    empty.hidden=true;
+
+    var W = Math.max(280, host.clientWidth || wrap.clientWidth || 640);
+    var H = W<520 ? 190 : 230;
+    var padL=56, padR=16, padT=14, padB=26;
+    var innerW=W-padL-padR, innerH=H-padT-padB;
+
+    var vals=[0], i;
+    for(i=0;i<st.series.length;i++) vals.push(st.series[i].cum);
+    var dMin=Math.min.apply(null, vals), dMax=Math.max.apply(null, vals);
+    if(dMax===dMin){ dMax=dMin+1; }
+    var step=niceStep(dMax-dMin, W<520?3:4);
+    var min=Math.floor(dMin/step)*step, max=Math.ceil(dMax/step)*step;
+    if(max-min < step*2){ max=min+step*2; }
+
+    var n=st.series.length;
+    function X(k){ return n===1 ? padL+innerW/2 : padL + (k/(n-1))*innerW; }
+    function Y(v){ return padT + (max-v)/(max-min)*innerH; }
+
+    var ticks=[];
+    for(var t=min; t<=max+step*0.001; t+=step) ticks.push(Math.round(t*1e6)/1e6);
+
+    var grid="", lab="";
+    for(i=0;i<ticks.length;i++){
+      var ty=Y(ticks[i]);
+      grid += '<line x1="'+padL+'" y1="'+ty.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+ty.toFixed(1)+'" stroke="var(--rule)" stroke-width="1"/>';
+      lab  += '<text x="'+(padL-8)+'" y="'+(ty+3.5).toFixed(1)+'" text-anchor="end" font-family="var(--mono)" font-size="10.5" fill="var(--muted)">'+esc(tickLabel(ticks[i]))+'</text>';
+    }
+    var zeroY=Y(0), zero="";
+    if(0>min && 0<max) zero = '<line x1="'+padL+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+zeroY.toFixed(1)+'" stroke="var(--rule-strong)" stroke-width="1.5"/>';
+
+    var d="", area="", pts=[];
+    for(i=0;i<n;i++){
+      var x=X(i), y=Y(st.series[i].cum);
+      pts.push({x:x, y:y, s:st.series[i]});
+      d += (i?" L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+    }
+    var base = Math.min(Math.max(zeroY,padT), padT+innerH);
+    area = d + " L"+X(n-1).toFixed(1)+" "+base.toFixed(1)+" L"+X(0).toFixed(1)+" "+base.toFixed(1)+" Z";
+
+    var last=pts[pts.length-1], lastVal=st.series[n-1].cum;
+    var tone = lastVal>0 ? "var(--good)" : lastVal<0 ? "var(--bad)" : "var(--ink-2)";
+    var labelTxt=money(lastVal);
+    var approxW=labelTxt.length*6.6+12;
+    var lx=last.x+9, anchor="start";
+    if(lx+approxW > W-padR){ lx=last.x-9; anchor="end"; }
+    var ly=Math.min(Math.max(last.y-10, padT+9), padT+innerH-2);
+
+    var svg = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Ganancia acumulada por pick resuelto">'+
+      grid + zero +
+      '<path d="'+area+'" fill="'+tone+'" fill-opacity="0.10" stroke="none"/>'+
+      '<path d="'+d+'" fill="none" stroke="'+tone+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<circle cx="'+last.x.toFixed(1)+'" cy="'+last.y.toFixed(1)+'" r="4" fill="'+tone+'" stroke="var(--surface)" stroke-width="2"/>'+
+      '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" font-family="var(--mono)" font-size="11.5" font-weight="600" fill="'+tone+'">'+esc(labelTxt)+'</text>'+
+      '<line id="cross" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+innerH)+'" stroke="var(--rule-strong)" stroke-width="1" opacity="0"/>'+
+      '<text x="'+padL+'" y="'+(H-7)+'" font-family="var(--mono)" font-size="10.5" fill="var(--muted)">1</text>'+
+      '<text x="'+(W-padR)+'" y="'+(H-7)+'" text-anchor="end" font-family="var(--mono)" font-size="10.5" fill="var(--muted)">'+n+'</text>'+
+      lab +
+      '</svg>';
+    host.innerHTML = svg;
+    chartPts = pts; chartBox = {W:W,H:H,padL:padL,padR:padR,padT:padT,innerH:innerH};
+    attachHover(host, wrap);
+  }
+
+  function attachHover(host, wrap){
+    var svg=host.querySelector("svg"); if(!svg) return;
+    var cross=svg.querySelector("#cross"), tip=null;
+    function hide(){ if(tip){ tip.remove(); tip=null; } if(cross) cross.setAttribute("opacity","0"); }
+    function move(ev){
+      if(!chartPts.length) return;
+      var r=svg.getBoundingClientRect();
+      var cx=(ev.clientX-r.left) * (chartBox.W/r.width);
+      var best=0, bd=Infinity;
+      for(var i=0;i<chartPts.length;i++){ var dd=Math.abs(chartPts[i].x-cx); if(dd<bd){ bd=dd; best=i; } }
+      var p=chartPts[best], pick=p.s.pick;
+      if(cross){ cross.setAttribute("x1",p.x); cross.setAttribute("x2",p.x); cross.setAttribute("opacity","1"); }
+      if(!tip){ tip=document.createElement("div"); tip.className="tip"; wrap.appendChild(tip); }
+      var per=pnlOf(pick);
+      tip.innerHTML='<b>'+esc(pick.event||"—")+'</b>'+
+        esc(pick.selection||"")+'<br><span class="num">'+esc(fmtOdds(pick.oddsDecimal,S.settings.oddsFormat))+
+        '</span> · '+esc(RESULT[pick.status].label)+'<br><span class="num">'+esc((per>=0?"+":"")+money(per))+
+        '</span> · acumulado <span class="num">'+esc(money(p.s.cum))+'</span>';
+      var scale = r.width/chartBox.W;
+      tip.style.left = (p.x*scale + (host.offsetLeft||0)) + "px";
+      tip.style.top  = (p.y*scale + (host.offsetTop||0)) + "px";
+    }
+    svg.addEventListener("pointermove", move);
+    svg.addEventListener("pointerleave", hide);
+  }
+
+  /* --------------------------- el libro -------------------------- */
+  function renderLedger(list){
+    var body=document.getElementById("ledger-body"), fmt=S.settings.oddsFormat, demo=isDemo();
+    var rows = list.slice().sort(function(a,b){ return orderKey(b)-orderKey(a); });
+    document.getElementById("ledger-count").textContent =
+      rows.length + (rows.length===1?" pick":" picks") + (demo ? " de ejemplo" : "");
+    document.getElementById("ledger-empty").hidden = rows.length>0;
+    if(!rows.length){ body.innerHTML=""; return; }
+
+    var html="";
+    for(var i=0;i<rows.length;i++){
+      var p=rows[i], r=RESULT[p.status]||RESULT.pendiente, pend=p.status==="pendiente";
+      var per = pend ? null : pnlOf(p);
+      var clv = (p.closingDecimal>1 && p.oddsDecimal>1) ? (p.oddsDecimal/p.closingDecimal-1)*100 : null;
+
+      var acts = demo ? '<span class="chip ex">Ejemplo</span>' : pend
+        ? '<div class="acts">'+
+          '<button type="button" class="mini g" data-act="set" data-id="'+esc(p.id)+'" data-v="ganado" title="Ganado">Ganó</button>'+
+          '<button type="button" class="mini p" data-act="set" data-id="'+esc(p.id)+'" data-v="perdido" title="Perdido">Perdió</button>'+
+          '<button type="button" class="mini" data-act="set" data-id="'+esc(p.id)+'" data-v="nulo" title="Nulo / push">Nulo</button>'+
+          '<button type="button" class="mini" data-act="half" data-id="'+esc(p.id)+'" title="Medio ganado o medio perdido">½</button>'+
+          '<button type="button" class="mini x" data-act="del" data-id="'+esc(p.id)+'" aria-label="Borrar pick">✕</button>'+
+          '</div>'
+        : '<div class="acts">'+
+          '<button type="button" class="mini" data-act="set" data-id="'+esc(p.id)+'" data-v="pendiente">Reabrir</button>'+
+          '<button type="button" class="mini x" data-act="del" data-id="'+esc(p.id)+'" aria-label="Borrar pick">✕</button>'+
+          '</div>';
+
+      var clvCell = demo
+        ? (clv===null ? '<span class="num" style="color:var(--muted)">—</span>' : '<span class="num">'+esc(pct(clv,2))+'</span>')
+        : (clv===null
+            ? '<button type="button" data-act="clv" data-id="'+esc(p.id)+'">+ cierre</button>'
+            : '<button type="button" data-act="clv" data-id="'+esc(p.id)+'" title="Momio de cierre '+esc(fmtOdds(p.closingDecimal,fmt))+'">'+esc(pct(clv,2))+'</button>');
+
+      html +=
+        '<tr data-tone="'+r.tone+'"'+(demo?' class="demo-row"':'')+'>'+
+          '<td class="stripe" aria-hidden="true"></td>'+
+          '<td data-label="Fecha" class="num">'+esc(shortDate(p.eventDate))+'</td>'+
+          '<td data-label="Evento" class="ev-cell"><span class="ev">'+esc(p.event||"—")+
+            (p.league?'<small>'+esc(p.league)+(p.book?" · "+esc(p.book):"")+'</small>':(p.book?'<small>'+esc(p.book)+'</small>':''))+'</span></td>'+
+          '<td data-label="Selección"><span class="sel">'+esc(p.selection||"—")+'</span></td>'+
+          '<td data-label="Momio" class="r num">'+esc(fmtOdds(p.oddsDecimal,fmt))+'</td>'+
+          '<td data-label="Importe" class="r num">'+esc(money(Number(p.stake)||0))+'</td>'+
+          '<td data-label="Estado"><span class="chip" data-tone="'+r.tone+'">'+esc(r.label)+'</span></td>'+
+          '<td data-label="Gana / Pierde" class="r num '+(per===null?"":"pnl "+(per>0?"pos":per<0?"neg":""))+'">'+
+            (per===null ? '<span style="color:var(--muted)">—</span>' : esc((per>0?"+":"")+money(per)))+'</td>'+
+          '<td data-label="CLV" class="r clv-cell">'+clvCell+'</td>'+
+          '<td data-label="" class="r">'+acts+'</td>'+
+        '</tr>';
+    }
+    body.innerHTML = html;
+  }
+
+  function refreshOptions(){
+    var all=activePicks(), leagues={}, books={}, i;
+    for(i=0;i<all.length;i++){
+      if(all[i].league) leagues[all[i].league]=1;
+      if(all[i].book) books[all[i].book]=1;
+    }
+    fillSelect("f-league", leagues, "Todas las ligas", S.filters.league);
+    fillSelect("f-book", books, "Todas las casas", S.filters.book);
+    fillList("league-list", leagues);
+    fillList("book-list", books);
+  }
+  function fillSelect(id, map, allLabel, current){
+    var el=document.getElementById(id), keys=Object.keys(map).sort();
+    var html='<option value="all">'+esc(allLabel)+'</option>';
+    for(var i=0;i<keys.length;i++) html+='<option value="'+esc(keys[i])+'">'+esc(keys[i])+'</option>';
+    el.innerHTML=html;
+    el.value = (current!=="all" && map[current]) ? current : "all";
+    if(el.value==="all") S.filters[id==="f-league"?"league":"book"]="all";
+  }
+  function fillList(id, map){
+    var el=document.getElementById(id), keys=Object.keys(map).sort(), html="";
+    for(var i=0;i<keys.length;i++) html+='<option value="'+esc(keys[i])+'"></option>';
+    el.innerHTML=html;
+  }
+
+  function render(){
+    document.getElementById("demo-notice").hidden = !isDemo();
+    refreshOptions();
+    var list=filtered(), st=computeStats(list);
+    renderKpis(st);
+    renderChart(st);
+    renderLedger(list);
+    var sb=document.getElementById("submit-btn");
+    sb.disabled = S.readOnly;
+    sb.textContent = S.readOnly ? "Solo lectura" : "Agregar al libro";
+  }
+
+  function applyFormatUI(){
+    var fmt=S.settings.oddsFormat, btns=document.querySelectorAll(".seg button");
+    for(var i=0;i<btns.length;i++) btns[i].setAttribute("aria-pressed", String(btns[i].getAttribute("data-fmt")===fmt));
+    document.getElementById("ticket-fmt-hint").textContent = oddsHint(fmt);
+    document.getElementById("p-odds").placeholder = oddsPlaceholder(fmt);
+    document.getElementById("p-close").placeholder = oddsPlaceholder(fmt);
+  }
+
+  /* =========================== eventos =========================== */
+  document.querySelector(".seg").addEventListener("click", function(e){
+    var b=e.target.closest("button[data-fmt]"); if(!b) return;
+    saveSetting({oddsFormat:b.getAttribute("data-fmt")});
+    applyFormatUI(); render();
+  });
+
+  document.getElementById("dismiss-demo").addEventListener("click", function(){
+    S.demoOff=true; lsSet(LS_DEMO,true); render();
+  });
+
+  ["f-status","f-league","f-book"].forEach(function(id){
+    document.getElementById(id).addEventListener("change", function(e){
+      S.filters[id==="f-status"?"status":id==="f-league"?"league":"book"] = e.target.value;
+      render();
+    });
+  });
+  var qT=null;
+  document.getElementById("f-q").addEventListener("input", function(e){
+    if(qT) clearTimeout(qT);
+    var v=e.target.value;
+    qT=setTimeout(function(){ S.filters.q=v; render(); }, 180);
+  });
+  document.getElementById("f-clear").addEventListener("click", function(){
+    S.filters={status:"all",league:"all",book:"all",q:""};
+    document.getElementById("f-status").value="all";
+    document.getElementById("f-q").value="";
+    render();
+  });
+
+  document.getElementById("p-odds").addEventListener("input", function(e){
+    var d=parseOdds(e.target.value, S.settings.oddsFormat), h=document.getElementById("odds-help");
+    if(!e.target.value.trim()){ h.textContent=""; h.className="help"; return; }
+    if(!(d>1)){ h.textContent="Momio no válido"; h.className="help err"; return; }
+    h.className="help";
+    h.textContent = "= "+d.toFixed(2)+" decimal · implícita "+plainPct(100/d);
+  });
+  document.getElementById("p-stake").addEventListener("input", function(e){
+    var s=Number(e.target.value), d=parseOdds(document.getElementById("p-odds").value, S.settings.oddsFormat);
+    var h=document.getElementById("stake-help");
+    if(s>0 && d>1){ h.textContent="Gana "+money(s*(d-1))+" · pierde "+money(s); }
+    else h.textContent="";
+  });
+
+  document.getElementById("pick-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    if(S.readOnly) return;
+    var fmt=S.settings.oddsFormat;
+    var d=parseOdds(document.getElementById("p-odds").value, fmt);
+    if(!(d>1)){ note("Revisa el momio: "+oddsHint(fmt).toLowerCase()+"."); document.getElementById("p-odds").focus(); return; }
+    var stake=Number(document.getElementById("p-stake").value);
+    if(!(stake>0)){ note("El importe debe ser mayor que cero."); document.getElementById("p-stake").focus(); return; }
+    var closeRaw=document.getElementById("p-close").value.trim();
+    var cd = closeRaw ? parseOdds(closeRaw, fmt) : null;
+    if(closeRaw && !(cd>1)){ note("El momio de cierre no es válido."); document.getElementById("p-close").focus(); return; }
+
+    addPick({
+      eventDate: document.getElementById("p-date").value || todayISO(),
+      event: document.getElementById("p-event").value.trim(),
+      league: document.getElementById("p-league").value.trim(),
+      selection: document.getElementById("p-sel").value.trim(),
+      book: document.getElementById("p-book").value.trim(),
+      oddsDecimal: Math.round(d*10000)/10000,
+      closingDecimal: cd ? Math.round(cd*10000)/10000 : null,
+      stake: stake,
+      status: "pendiente",
+      settledAt: null,
+      createdAt: Date.now()
+    });
+    S.demoOff = true; lsSet(LS_DEMO, true);
+    ["p-event","p-sel","p-odds","p-stake","p-close"].forEach(function(id){ document.getElementById(id).value=""; });
+    document.getElementById("odds-help").textContent="";
+    document.getElementById("stake-help").textContent="";
+    document.getElementById("p-event").focus();
+    note("Pick agregado.");
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", function(){
+    document.getElementById("pick-form").reset();
+    document.getElementById("p-date").value=todayISO();
+    document.getElementById("odds-help").textContent="";
+    document.getElementById("stake-help").textContent="";
+  });
+
+  document.getElementById("ledger-body").addEventListener("click", function(e){
+    var b=e.target.closest("button[data-act]"); if(!b) return;
+    var act=b.getAttribute("data-act"), id=b.getAttribute("data-id");
+    if(isDemo()) return;
+
+    if(act==="set"){
+      var v=b.getAttribute("data-v");
+      patchPick(id, {status:v, settledAt: v==="pendiente" ? null : Date.now()});
+    } else if(act==="half"){
+      var half = window.prompt("¿Medio ganado o medio perdido? Escribe G para medio ganado o P para medio perdido.");
+      if(half===null) return;
+      var h=half.trim().toUpperCase();
+      if(h!=="G" && h!=="P"){ note("Escribe solo G o P."); return; }
+      patchPick(id, {status: h==="G" ? "medio_ganado" : "medio_perdido", settledAt: Date.now()});
+    } else if(act==="del"){
+      if(window.confirm("¿Borrar este pick del libro? No se puede deshacer.")) removePick(id);
+    } else if(act==="clv"){
+      openClv(b, id);
+    }
+  });
+
+  function openClv(btn, id){
+    var cell=btn.parentNode, fmt=S.settings.oddsFormat;
+    var pick=null, all=S.picks;
+    for(var i=0;i<all.length;i++) if(all[i].id===id) pick=all[i];
+    var current = pick && pick.closingDecimal>1 ? fmtOdds(pick.closingDecimal, fmt) : "";
+    cell.innerHTML='<input type="text" value="'+esc(current)+'" placeholder="'+esc(oddsPlaceholder(fmt))+'" aria-label="Momio de cierre">';
+    var inp=cell.querySelector("input");
+    inp.focus(); inp.select();
+    function commit(){
+      var raw=inp.value.trim();
+      if(!raw){ patchPick(id,{closingDecimal:null}); return; }
+      var d=parseOdds(raw, fmt);
+      if(!(d>1)){ note("Momio de cierre no válido."); render(); return; }
+      patchPick(id,{closingDecimal: Math.round(d*10000)/10000});
+    }
+    inp.addEventListener("keydown", function(ev){
+      if(ev.key==="Enter"){ ev.preventDefault(); commit(); }
+      else if(ev.key==="Escape"){ render(); }
+    });
+    inp.addEventListener("blur", commit);
+  }
+
+  var rzT=null;
+  window.addEventListener("resize", function(){
+    if(rzT) clearTimeout(rzT);
+    rzT=setTimeout(function(){ renderChart(computeStats(filtered())); }, 140);
+  });
+
+  boot();
+})();
+</script>
