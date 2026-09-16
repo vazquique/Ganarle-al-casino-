@@ -81,6 +81,7 @@ select,input[type="text"],input[type="number"],input[type="date"]{
   font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);
   border:1px solid var(--rule-strong);border-radius:6px;padding:6px 9px;min-width:0;max-width:100%;width:100%}
 input::placeholder{color:var(--muted)}
+input:disabled,select:disabled{background:var(--inset);color:var(--ink-2);cursor:not-allowed;border-style:dashed}
 .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .f label{font-family:var(--cond);text-transform:uppercase;letter-spacing:.07em;font-size:10.5px;font-weight:600;color:var(--ink-2)}
 .f .help{font-size:11.5px;color:var(--muted);min-height:1em;line-height:1.35}
@@ -252,6 +253,7 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     <nav class="tabs" role="tablist" aria-label="Secciones">
       <button type="button" role="tab" id="tab-btn-hoy" aria-selected="true" aria-controls="tab-hoy">Pick del día<span class="badge" id="cand-badge" hidden>0</span></button>
       <button type="button" role="tab" id="tab-btn-analizar" aria-selected="false" aria-controls="tab-analizar">Analizar</button>
+      <button type="button" role="tab" id="tab-btn-equipos" aria-selected="false" aria-controls="tab-equipos">Equipos</button>
       <button type="button" role="tab" id="tab-btn-libro" aria-selected="false" aria-controls="tab-libro">Mi libro</button>
     </nav>
   </header>
@@ -330,10 +332,11 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
         <span class="hint">Solo fútbol · mercados 1X2, total y ambos anotan</span>
       </div>
       <div class="card-body">
-        <p style="margin:0 0 12px;font-size:13px;color:var(--ink-2);max-width:66ch">
-          Escribe los goles por partido de cada equipo esta temporada (o su xG, que es mejor) y el modelo
-          calcula su propia probabilidad. Se mezcla con la del mercado según el peso que elijas.
+        <p style="margin:0 0 10px;font-size:13px;color:var(--ink-2);max-width:66ch">
+          Si tienes cargada la pestaña <strong>Equipos</strong>, el modelo se alimenta solo. Si no, escribe los
+          goles por partido a mano. Se mezcla con la probabilidad del mercado según el peso que elijas.
         </p>
+        <p id="model-source" style="margin:0 0 12px;font-size:12.5px;color:var(--accent-ink);font-family:var(--mono)"></p>
         <div class="step">
           <div class="f"><label for="m-hf">Local · goles a favor / partido</label><input type="number" id="m-hf" step="0.01" min="0" placeholder="1.75"><div class="help"></div></div>
           <div class="f"><label for="m-ha">Local · goles en contra / partido</label><input type="number" id="m-ha" step="0.01" min="0" placeholder="1.10"><div class="help"></div></div>
@@ -392,6 +395,45 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     </div></div>
 
     <div id="verdict-slot"></div>
+  </section>
+
+  <!-- ============ EQUIPOS ============ -->
+  <section id="tab-equipos" role="tabpanel" aria-labelledby="tab-btn-equipos" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Tabla de fuerza por equipo</h2><span class="hint" id="teams-league-name"></span></div>
+      <div class="card-body">
+        <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink-2);max-width:70ch">
+          Escribe una vez los partidos jugados, goles a favor y goles en contra de cada equipo — los sacas de
+          cualquier tabla de posiciones. A partir de ahí el modelo Poisson se alimenta solo en cada análisis,
+          sin que vuelvas a teclear nada.
+        </p>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--ink-2);max-width:70ch">
+          Los goles crudos de las primeras jornadas son ruido, así que no se usan tal cual: se
+          <strong>contraen hacia la media de la liga</strong> con peso proporcional a los partidos jugados.
+          Un equipo con 4 partidos se parecerá mucho a la media; con 25, sus números mandan casi del todo.
+        </p>
+        <div class="step cols2" style="margin-bottom:14px">
+          <div class="f"><label for="t-league">Liga</label><select id="t-league"></select><div class="help"></div></div>
+          <div class="f"><label for="t-prior">Fuerza del ajuste</label>
+            <select id="t-prior">
+              <option value="6">Suave · equivale a 6 partidos</option>
+              <option value="10" selected>Normal · equivale a 10 partidos</option>
+              <option value="16">Fuerte · equivale a 16 partidos</option>
+            </select><div class="help">Cuántos partidos "de media de liga" se suman a cada equipo</div></div>
+        </div>
+        <div style="overflow-x:auto"><table id="teams-table">
+          <thead><tr><th>Equipo</th><th class="r">PJ</th><th class="r">GF</th><th class="r">GC</th>
+            <th class="r">Ataque ajustado</th><th class="r">Defensa ajustada</th></tr></thead>
+          <tbody id="teams-body"></tbody>
+        </table></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px">
+          <button type="button" class="btn" id="teams-save">Guardar tabla</button>
+          <button type="button" class="btn ghost" id="teams-clear">Vaciar</button>
+          <span class="note" id="teams-note" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+        <p style="margin:14px 0 0;font-size:12.5px;color:var(--muted)" id="teams-summary"></p>
+      </div>
+    </div>
   </section>
 
   <!-- ============ MI LIBRO ============ -->
@@ -494,7 +536,7 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
   var S = {
     picks:[], cands:[], settings:{oddsFormat:"american",currency:"$"},
     mode:"loading", db:null, readOnly:false, demoOff:false, tab:"hoy",
-    sel:"H", filters:{status:"all",league:"all",book:"all",q:""}
+    sel:"H", teams:{}, filters:{status:"all",league:"all",book:"all",q:""}
   };
   var queue=[], resolved=false, lastAnalysis=null;
 
@@ -573,6 +615,29 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     };
   }
 
+  /* ══════════════ fuerza de equipo con contracción ══════════════ */
+  function leagueTable(lg){ return S.teams[lg]||{}; }
+  function leagueMean(lg){
+    var t=leagueTable(lg), pj=0, gf=0;
+    for(var k in t) if(Object.prototype.hasOwnProperty.call(t,k)){
+      var r=t[k]; if(r&&r.pj>0){ pj+=Number(r.pj)||0; gf+=Number(r.gf)||0; }
+    }
+    return pj>0 ? gf/pj : null;   /* goles por equipo y partido */
+  }
+  /* contracción empírica de Bayes: (goles + m·media) / (partidos + m) */
+  function teamRates(lg,name){
+    var t=leagueTable(lg), r=t[name];
+    if(!r||!(Number(r.pj)>0)) return null;
+    var mean=leagueMean(lg); if(!(mean>0)) return null;
+    var m=Number(el("t-prior")?el("t-prior").value:10)||10;
+    var pj=Number(r.pj)||0, gf=Number(r.gf)||0, ga=Number(r.ga)||0;
+    return {
+      pj:pj, gfRaw:gf/pj, gaRaw:ga/pj,
+      gf:(gf+m*mean)/(pj+m), ga:(ga+m*mean)/(pj+m),
+      mean:mean, m:m
+    };
+  }
+
   /* ═══════════════════ modelo Poisson / Dixon-Coles ═══════════════ */
   var FACT=[1]; (function(){ for(var i=1;i<=14;i++) FACT[i]=FACT[i-1]*i; })();
   function pois(k,l){ return Math.exp(-l)*Math.pow(l,k)/FACT[k]; }
@@ -594,10 +659,25 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     for(i=0;i<=MAXG;i++) for(j=0;j<=MAXG;j++) m[i][j]/=tot;
     return m;
   }
+  /* si la tabla cubre a ambos equipos, manda ella */
+  function autoRates(){
+    var lg=el("a-league").value, h=el("a-home").value.trim(), a=el("a-away").value.trim();
+    if(!h||!a) return null;
+    var rh=teamRates(lg,h), ra=teamRates(lg,a);
+    if(!rh||!ra) return null;
+    return {h:rh, a:ra, mean:rh.mean};
+  }
   function modelProbs(){
-    var hf=Number(el("m-hf").value), ha=Number(el("m-ha").value),
-        af=Number(el("m-af").value), aa=Number(el("m-aa").value),
-        avg=Number(el("m-avg").value), adv=Number(el("m-ha-adv").value);
+    var auto=autoRates();
+    var hf,ha,af,aa,avg;
+    var adv=Number(el("m-ha-adv").value);
+    if(auto){
+      hf=auto.h.gf; ha=auto.h.ga; af=auto.a.gf; aa=auto.a.ga; avg=auto.mean*2;
+    } else {
+      hf=Number(el("m-hf").value); ha=Number(el("m-ha").value);
+      af=Number(el("m-af").value); aa=Number(el("m-aa").value);
+      avg=Number(el("m-avg").value);
+    }
     if(!(hf>0&&ha>0&&af>0&&aa>0&&avg>0)) return null;
     var per=avg/2, k=Math.sqrt(adv);
     var lh=(hf/per)*(aa/per)*per*k, la=(af/per)*(ha/per)*per/k;
@@ -652,6 +732,11 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
         var o=[]; for(var i=0;i<s.docs.length;i++) o.push(Object.assign({id:s.docs[i].id},s.docs[i].data()||{}));
         S.picks=o; renderAll();
       },function(e){ if(e&&e.code==="revoked"){ S.readOnly=true; renderAll(); } });
+      db.collection("teams").onSnapshot(function(s){
+        var m={};
+        for(var i=0;i<s.docs.length;i++){ var d=s.docs[i].data()||{}; if(d.league) m[d.league]=d.teams||{}; }
+        S.teams=m; if(S.tab==="equipos") renderTeams(); renderAll();
+      },function(){});
       db.collection("candidates").onSnapshot(function(s){
         var o=[]; for(var i=0;i<s.docs.length;i++) o.push(Object.assign({id:s.docs[i].id},s.docs[i].data()||{}));
         S.cands=o; renderAll();
@@ -665,6 +750,7 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     el("local-notice").hidden=false;
     var sp=lsGet(LS_P,[]); if(Array.isArray(sp)) S.picks=sp.concat(S.picks.filter(isTemp));
     var sc=lsGet(LS_C,[]); if(Array.isArray(sc)) S.cands=sc;
+    var stm=lsGet("libro-momios:teams",null); if(stm&&typeof stm==="object") S.teams=stm;
     flushQueue();
   }
   function isTemp(p){ return String(p.id).indexOf("tmp-")===0; }
@@ -837,7 +923,21 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
   function renderModelOut(){
     var out=el("model-out"), def=marketDef();
     if(!def.model){ out.textContent="No aplica a este mercado"; return; }
-    var mp=modelProbs();
+    var mp=modelProbs(), auto=autoRates();
+    var src=el("model-source");
+    if(src) src.textContent = auto
+      ? "Automático desde tu tabla de equipos · "+auto.h.pj+" y "+auto.a.pj+" partidos, contraídos hacia la media de liga"
+      : "Sin datos en la tabla para estos dos equipos: escríbelos abajo a mano, o cárgalos en la pestaña Equipos";
+    /* con datos de la tabla, los campos muestran lo que realmente usa el modelo y se bloquean */
+    var fields=[["m-hf",auto?auto.h.gf:null],["m-ha",auto?auto.h.ga:null],
+                ["m-af",auto?auto.a.gf:null],["m-aa",auto?auto.a.ga:null],
+                ["m-avg",auto?auto.mean*2:null]];
+    for(var fi=0;fi<fields.length;fi++){
+      var fe=el(fields[fi][0]); if(!fe) continue;
+      if(auto){ fe.value=fields[fi][1].toFixed(2); fe.disabled=true; fe.setAttribute("data-auto","1"); }
+      else if(fe.getAttribute("data-auto")==="1"){ fe.value=""; fe.disabled=false; fe.removeAttribute("data-auto"); }
+      else fe.disabled=false;
+    }
     if(!mp){ out.textContent="Completa los goles para verlo"; return; }
     var line=parseFloat(el("a-line").value)||2.5;
     out.textContent="λ local "+mp.lh.toFixed(2)+" · λ visitante "+mp.la.toFixed(2)+
@@ -1187,11 +1287,65 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     bl.innerHTML=h;
   }
 
+  /* ═════════════════════ la tabla de equipos ═════════════════════ */
+  function slug(name){
+    return String(name).toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,80) || "liga";
+  }
+  function renderTeams(){
+    var lg=el("t-league").value, listed=LEAGUES[lg]||[], t=leagueTable(lg);
+    el("teams-league-name").textContent=lg;
+    var names={}, i;
+    for(i=0;i<listed.length;i++) names[listed[i]]=1;
+    for(var k in t) if(Object.prototype.hasOwnProperty.call(t,k)) names[k]=1;
+    var all=Object.keys(names).sort(), mean=leagueMean(lg), h="";
+    for(i=0;i<all.length;i++){
+      var n=all[i], r=t[n]||{}, rt=teamRates(lg,n);
+      h+='<tr data-team="'+esc(n)+'">'+
+         '<td data-label="Equipo" class="ev-cell"><span class="ev">'+esc(n)+'</span></td>'+
+         '<td data-label="PJ" class="r"><input type="number" min="0" step="1" class="t-in" data-f="pj" value="'+esc(r.pj!=null?r.pj:"")+'" style="width:64px;text-align:right" aria-label="Partidos jugados de '+esc(n)+'"></td>'+
+         '<td data-label="GF" class="r"><input type="number" min="0" step="1" class="t-in" data-f="gf" value="'+esc(r.gf!=null?r.gf:"")+'" style="width:64px;text-align:right" aria-label="Goles a favor de '+esc(n)+'"></td>'+
+         '<td data-label="GC" class="r"><input type="number" min="0" step="1" class="t-in" data-f="ga" value="'+esc(r.ga!=null?r.ga:"")+'" style="width:64px;text-align:right" aria-label="Goles en contra de '+esc(n)+'"></td>'+
+         '<td data-label="Ataque ajustado" class="r num">'+(rt?esc(rt.gf.toFixed(2))+' <span style="color:var(--muted);font-size:11.5px">de '+esc(rt.gfRaw.toFixed(2))+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>'+
+         '<td data-label="Defensa ajustada" class="r num">'+(rt?esc(rt.ga.toFixed(2))+' <span style="color:var(--muted);font-size:11.5px">de '+esc(rt.gaRaw.toFixed(2))+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>'+
+         '</tr>';
+    }
+    el("teams-body").innerHTML=h;
+    var filled=0; for(var q in t) if(Object.prototype.hasOwnProperty.call(t,q)&&t[q]&&t[q].pj>0) filled++;
+    el("teams-summary").textContent = mean
+      ? filled+" equipos con datos · media de la liga "+mean.toFixed(2)+" goles por equipo y partido ("+(mean*2).toFixed(2)+" por encuentro). Las columnas ajustadas son las que usa el modelo."
+      : "Sin datos todavía. Escribe al menos los partidos jugados y los goles de dos equipos para que el modelo pueda trabajar.";
+  }
+  function readTeamsFromDom(){
+    var lg=el("t-league").value, rows=el("teams-body").querySelectorAll("tr"), out={};
+    for(var i=0;i<rows.length;i++){
+      var name=rows[i].getAttribute("data-team"), ins=rows[i].querySelectorAll(".t-in"), rec={};
+      for(var j=0;j<ins.length;j++){
+        var v=ins[j].value.trim();
+        if(v!=="") rec[ins[j].getAttribute("data-f")]=Number(v);
+      }
+      if(rec.pj>0) out[name]=rec;
+    }
+    S.teams[lg]=out;
+    return {lg:lg, teams:out};
+  }
+  function saveTeams(){
+    var r=readTeamsFromDom();
+    var note=el("teams-note");
+    if(S.readOnly){ note.textContent="Solo lectura: no se puede guardar."; return; }
+    var body={league:r.lg, teams:r.teams, updatedAt:Date.now()};
+    if(S.mode==="db") S.db.collection("teams").doc(slug(r.lg)).set(body).then(function(){ note.textContent="Guardado."; },onWriteError);
+    else { lsSet("libro-momios:teams",S.teams); note.textContent="Guardado en este navegador."; }
+    renderTeams(); renderAll();
+  }
+
   /* ═══════════════════════════ pintar todo ═══════════════════════ */
   function renderAll(){
     el("demo-notice").hidden=!isDemo();
     refreshOptions();
     renderToday();
+    if(S.tab==="equipos") renderTeams();
     if(S.tab==="analizar"){ renderSelRow(); renderModelOut(); renderVerdict(); }
     var list=filtered(), st=computeStats(list);
     renderKpis(st); renderLedger(list);
@@ -1206,7 +1360,7 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
   }
   function setTab(t){
     S.tab=t;
-    ["hoy","analizar","libro"].forEach(function(k){
+    ["hoy","analizar","equipos","libro"].forEach(function(k){
       el("tab-"+k).hidden=(k!==t);
       el("tab-btn-"+k).setAttribute("aria-selected",String(k===t));
     });
@@ -1289,6 +1443,22 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     }
   });
 
+  el("t-league").addEventListener("change",function(){ el("teams-note").textContent=""; renderTeams(); });
+  el("t-prior").addEventListener("change",function(){ renderTeams(); renderAll(); });
+  el("teams-body").addEventListener("input",function(e){
+    if(!e.target.classList.contains("t-in")) return;
+    readTeamsFromDom();
+    el("teams-note").textContent="Sin guardar";
+  });
+  el("teams-save").addEventListener("click",saveTeams);
+  el("teams-clear").addEventListener("click",function(){
+    if(!window.confirm("¿Vaciar la tabla de esta liga?")) return;
+    var lg=el("t-league").value; S.teams[lg]={};
+    if(S.mode==="db"&&!S.readOnly) S.db.collection("teams").doc(slug(lg)).set({league:lg,teams:{},updatedAt:Date.now()}).then(null,onWriteError);
+    else lsSet("libro-momios:teams",S.teams);
+    renderTeams(); renderAll();
+  });
+
   el("dismiss-demo").addEventListener("click",function(){ S.demoOff=true; lsSet(LS_D,true); renderAll(); });
   ["f-status","f-league","f-book"].forEach(function(id){
     el(id).addEventListener("change",function(e){
@@ -1350,6 +1520,7 @@ tr[data-tone="muted"] td.stripe{background:var(--rule-strong)}
     for(var name in LEAGUES) if(Object.prototype.hasOwnProperty.call(LEAGUES,name)) lh+='<option value="'+esc(name)+'">'+esc(name)+'</option>';
     el("a-league").innerHTML=lh;
     el("a-league").value="Liga MX";
+    el("t-league").innerHTML=lh; el("t-league").value="Liga MX";
     var teams=LEAGUES["Liga MX"], th="";
     for(var i=0;i<teams.length;i++) th+='<option value="'+esc(teams[i])+'"></option>';
     el("team-list").innerHTML=th;
